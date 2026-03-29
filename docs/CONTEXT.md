@@ -6,28 +6,37 @@
 
 ## What This Is
 
-A colorful dessert ordering site for Cassie's invited guests. Guests log in with a shared password, pick a treat, choose a delivery date, and submit. Cassie manages everything from Baker View. Photos can be uploaded by guests and approved by the baker.
+A colorful dessert ordering site for Cassie's invited guests. Guests log in with a shared password, pick a treat, choose a delivery date, and submit. Cassie manages everything from Baker View — including menu items, orders, photos, and guest suggestions.
 
 **No backend server.** All database calls go directly from the browser to Supabase via the JS CDN client. Railway serves the static files using `serve`.
+
+**Live URL:** cassieproject-production.up.railway.app
+**GitHub:** github.com/mitch-coluzzi/CassieProject
 
 ---
 
 ## File Map
 
 ```
-index.html              ← HTML shell: 6 screen containers, modal, canvas, script tags
-css/styles.css          ← Full design system (edit colors, fonts, spacing here)
-js/config.js            ← Supabase keys, MENU data, date helpers, showScreen()
-js/app.js               ← Boot: inits login, wires baker link + modal close
+index.html              ← HTML shell: 7 screen containers, 2 modals, canvas, script tags
+css/styles.css          ← Full design system (colors, pup images, doggies, badges, responsive)
+js/config.js            ← Supabase client, loadMenu(), date helpers, getPupImage(), showScreen()
+js/app.js               ← Boot: await loadMenu(), init login, wire modals
 js/login.js             ← Password screen (secret: "treats", case-insensitive)
-js/names.js             ← User dropdown from DB, active-order check
-js/order.js             ← Menu grid, calendar, destination picker, order submit
+js/names.js             ← User dropdown from DB, active-order check, pup on already-ordered
+js/order.js             ← Menu grid with badges, calendar, destination, submit, recipe modal
 js/calendar.js          ← Custom month calendar widget (reused in order + baker)
 js/baker.js             ← Admin view (password: "swimfast12", case-insensitive)
-js/photos.js            ← Photo upload (guests) + approval (baker)
+js/photos.js            ← Photo upload/gallery (guests) + suggestions + baker review
 js/confetti.js          ← Celebration animation on order submit
-setup.sql               ← Schema + seed data (already run in Supabase)
+images/                 ← Pup images (pup-password, pup-baker, pup-cake, pup-cupcake, pup-banana)
+setup.sql               ← Full schema + seed data (reference only — already run)
+migrate-v2.sql          ← menu_items + suggestions tables
+migrate-v3.sql          ← badge column on menu_items
+migrate-v4.sql          ← 'completed' order status
+migrate-v5.sql          ← recipe_url column on menu_items
 package.json            ← Railway deploy: "serve" static server
+docs/CONTEXT.md         ← This file
 ```
 
 ---
@@ -50,12 +59,13 @@ package.json            ← Railway deploy: "serve" static server
 - **Pacifico** — headings (bakery feel)
 - **Nunito** — body text (friendly, rounded)
 
-### Cassie Design Notes
-- To change colors: edit the `:root` block at the top of `styles.css`
-- To add stickers/decals: add `<img>` tags in the screen HTML (login.js, order.js, etc.) and position with CSS
-- Cards use `border-radius: 20px`, shadows, and scale-on-hover
+### Visual Elements
+- Pup images on login, name selection, order confirmation, and already-ordered screens
+- Bouncing doggie emojis fixed-positioned around the site edges
+- NEW (pulsing orange) and BE THE FIRST (pink) badges on menu cards
+- Confetti animation on order submission
+- Soft rounded corners, card-based layout, scale-on-hover buttons
 - Mobile breakpoints at 768px and 480px
-- Emoji used throughout as visual icons
 
 ---
 
@@ -79,10 +89,10 @@ package.json            ← Railway deploy: "serve" static server
 |--------|------|-------|
 | id | uuid | PK |
 | user_id | uuid | FK → users.id |
-| treat | text | must match a MENU item name |
+| treat | text | matches menu_items.name |
 | pickup_date | date | Mon–Thu only |
 | destination | text | 'office' or 'home' |
-| status | text | 'active' or 'cancelled' |
+| status | text | 'active', 'cancelled', or 'completed' |
 | created_at | timestamptz | auto |
 
 ### blocked_dates
@@ -91,6 +101,21 @@ package.json            ← Railway deploy: "serve" static server
 | id | uuid | PK |
 | date | date | the blocked day |
 | blocked_by_week | boolean | if true, blocks entire Mon–Thu of that week |
+| created_at | timestamptz | auto |
+
+### menu_items
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid | PK |
+| name | text | unique, displayed to guests |
+| emoji | text | shown on cards and orders |
+| description | text | fun description for recipe modal |
+| lead_days | integer | 0 = same day, 5/7 = advance notice required |
+| ingredients | text[] | Postgres array of strings |
+| recipe_url | text | optional link to source recipe |
+| sort_order | integer | controls display sequence |
+| badge | text | 'auto', 'new', 'first', or 'none' |
+| active | boolean | false = hidden from guests |
 | created_at | timestamptz | auto |
 
 ### photos
@@ -103,22 +128,32 @@ package.json            ← Railway deploy: "serve" static server
 
 **Storage bucket:** `treat-photos` (public, JPEG/PNG, 5MB max)
 
+### suggestions
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid | PK |
+| user_name | text | who suggested it |
+| suggestion | text | what they want baked |
+| created_at | timestamptz | auto |
+
 ---
 
-## Menu (js/config.js → MENU array)
+## Menu System
 
-| Treat | Emoji | Lead Days |
-|-------|-------|-----------|
-| Banana Cream Pie | 🍌 | 7 |
-| Pumpkin Pie | 🎃 | 5 |
-| Banana Bread | 🍞 | 7 |
-| Pumpkin Muffins | 🧁 | 5 |
-| Chocolate Muffins | 🍫 | 0 |
-| Chocolate Cake | 🎂 | 0 |
-| Vanilla Cake | 🍰 | 0 |
+Menu items are stored in the `menu_items` table and loaded at boot via `loadMenu()`. The global `MENU` array is populated before any screen renders.
 
-Each item has: name, emoji, leadDays, description, ingredients array.
-To add/remove/edit treats: modify the MENU array in `js/config.js`.
+**Badge logic (order.js):**
+- `badge = 'new'` → always shows NEW badge (pulsing orange)
+- `badge = 'first'` → always shows BE THE FIRST badge (pink)
+- `badge = 'none'` → no badge
+- `badge = 'auto'` → NEW if created within 14 days, BE THE FIRST if never ordered
+
+Menu cards sort: NEW first, BE THE FIRST second, everything else after.
+
+**Pup image mapping (config.js → getPupImage):**
+- Muffins → pup-cupcake.png
+- Cake → pup-cake.png
+- Banana/Pumpkin/Pie → pup-banana.png
 
 ---
 
@@ -126,7 +161,7 @@ To add/remove/edit treats: modify the MENU array in `js/config.js`.
 
 1. **Delivery days:** Mon–Thu only (Fri/Sat/Sun disabled on calendar)
 2. **One order per week:** If any active order exists in the target week, that week is blocked
-3. **One order per user:** If `has_active_order = true`, user sees "already ordered" screen
+3. **One order per user:** If `has_active_order = true`, user sees "already ordered" screen with pup
 4. **Lead time:** Earliest date = today + leadDays, rounded forward past weekends
 5. **Blocked dates:** Baker can block individual days or whole weeks
 
@@ -135,30 +170,35 @@ To add/remove/edit treats: modify the MENU array in `js/config.js`.
 ## User Flow
 
 ```
-Login ("treats") → Pick Name → Order Form → Celebrate + Confetti + Gallery
-                                  ↑
-                          (if has_active_order → "Already Ordered" screen)
+Login ("treats" + pup-password) → Pick Name (pup-baker) → Order Form → Confetti + Pup Confirm
+                                                              ↑
+                                                    (if has_active_order → "Already Ordered" + pup)
+                                                              ↓
+                                                    Gallery & Suggestions (accessible from all screens)
 ```
 
 ## Baker Flow
 
 ```
 Footer link → Password ("swimfast12") → Baker Dashboard
-  ├── Order Calendar (click order chip to cancel)
-  ├── Block/Unblock dates (click empty day)
-  ├── Active Orders table
+  ├── Order Calendar (click chip → complete or cancel)
+  ├── Active Orders table (Done / Cancel buttons per row)
+  ├── Menu Items (edit, add, hide/show, emoji picker, badge toggle, recipe URL)
+  ├── Add Guest form
   ├── Photo Review (approve/delete pending, manage approved)
-  └── Add Guest form
+  └── Suggestion Box (view and dismiss guest suggestions)
 ```
 
 ---
 
 ## Deployment
 
+- **Live:** cassieproject-production.up.railway.app
 - **Hosting:** Railway (auto-deploy from GitHub `main` branch)
 - **Static server:** `serve` via package.json
 - **Database:** Supabase (free tier, no backend needed)
-- **Push:** `git push` from Windows (WSL can't push)
+- **Repo:** github.com/mitch-coluzzi/CassieProject
+- **Push:** `git push` from Windows PowerShell (WSL can't push)
 
 ---
 
@@ -166,22 +206,26 @@ Footer link → Password ("swimfast12") → Baker Dashboard
 
 ```
 app.js (boot)
+  └── await loadMenu()  ← fetches menu_items from Supabase
   └── Login.init()
         └── Names.init()
-              ├── [has_active_order] → Already Ordered screen
+              ├── [has_active_order] → Already Ordered screen (+ pup + gallery link)
               └── Order.init()
-                    ├── Calendar.init() (date picker)
-                    ├── openRecipe() → recipe modal
+                    ├── Calendar.init() (date picker with lead time blocking)
+                    ├── openRecipe() → recipe modal (+ recipe URL link)
+                    ├── Photos.showGalleryScreen() (gallery + suggestions)
                     └── submitOrder()
                           ├── Confetti.fire()
-                          └── Photos.renderGallery()
+                          └── pup confirm screen (+ gallery link)
 
 Baker.promptPassword()
   └── loadBakerView()
-        ├── renderBakerCalendar()
-        ├── renderOrdersTable()
+        ├── renderBakerCalendar() (complete/cancel orders, block/unblock dates)
+        ├── renderOrdersTable() (Done/Cancel per row)
+        ├── renderMenuManager() (edit/add/toggle items, emoji picker, badge, recipe URL)
         ├── bindAddUser()
-        └── Photos.renderBakerPhotos()
+        ├── Photos.renderBakerPhotos() (approve/delete)
+        └── Photos.renderBakerSuggestions() (view/dismiss)
 ```
 
-All modules are IIFEs (immediately-invoked function expressions) exposing public methods on a global object (Login, Names, Order, Calendar, Baker, Photos, Confetti).
+All modules are IIFEs exposing public methods on global objects (Login, Names, Order, Calendar, Baker, Photos, Confetti).
