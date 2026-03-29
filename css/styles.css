@@ -987,3 +987,73 @@ input:focus, select:focus {
   border-color: var(--orange);
   background: rgba(255, 107, 53, 0.08);
 }
+
+/* ── Cute Doggies ── */
+
+.doggie {
+  position: fixed;
+  font-size: 2rem;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.6;
+  animation: doggieBounce 3s ease-in-out infinite;
+}
+
+.doggie-1 { top: 12%; left: 3%; animation-delay: 0s; }
+.doggie-2 { top: 45%; right: 2%; animation-delay: 0.8s; }
+.doggie-3 { bottom: 15%; left: 5%; animation-delay: 1.5s; }
+.doggie-4 { top: 20%; right: 4%; animation-delay: 2.2s; font-size: 1.6rem; }
+.doggie-5 { bottom: 25%; right: 6%; animation-delay: 0.4s; font-size: 1.4rem; }
+
+@keyframes doggieBounce {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(-5deg); }
+  75% { transform: translateY(-4px) rotate(5deg); }
+}
+
+/* ── Delivery Mouse Car ── */
+
+.delivery-scene {
+  margin: 32px auto;
+  text-align: center;
+  position: relative;
+  height: 80px;
+  max-width: 400px;
+}
+
+.delivery-car {
+  position: absolute;
+  font-size: 2.8rem;
+  animation: driveAcross 4s ease-in-out infinite;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.delivery-car .car-treat {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.4rem;
+}
+
+.delivery-road {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gray);
+  border-radius: 2px;
+}
+
+@keyframes driveAcross {
+  0% { left: -60px; }
+  50% { left: calc(100% - 40px); }
+  100% { left: -60px; }
+}
+
+@media (max-width: 768px) {
+  .doggie { font-size: 1.4rem; }
+  .doggie-4, .doggie-5 { display: none; }
+}

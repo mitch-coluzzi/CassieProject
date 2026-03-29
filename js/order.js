@@ -231,12 +231,20 @@ const Order = (() => {
     // Celebrate!
     const firstName = displayName.split(' ')[0];
     const dateStr = formatDate(Calendar.getSelectedDate());
+    const treatEmoji = selectedTreat ? selectedTreat.emoji : '🍰';
     const screen = document.getElementById('screen-celebrate');
     screen.innerHTML = `
       <div class="celebrate-emoji">🎉</div>
       <h1 class="celebrate-title">Yay!</h1>
       <p class="celebrate-msg">Your treat is coming ${dateStr}, ${firstName}!</p>
       <p class="celebrate-msg">Cassie's on it! 🍰</p>
+      <div class="delivery-scene">
+        <div class="delivery-road"></div>
+        <div class="delivery-car">
+          <span class="car-treat">${treatEmoji}</span>
+          🐭🚗
+        </div>
+      </div>
       <div style="margin-top: 24px;">
         <button class="btn btn-outline btn-small" id="celebrate-gallery-link">Gallery & Suggestions 📸</button>
       </div>

@@ -11,22 +11,9 @@ const Photos = (() => {
 
   function showGalleryScreen(returnScreen) {
     const screen = document.getElementById('screen-gallery');
-    const displayName = sessionStorage.getItem('displayName') || 'Guest';
     screen.innerHTML = `
       <div class="gallery-back">
         <button class="btn btn-outline btn-small" id="gallery-back-btn">← Back</button>
-      </div>
-      <div class="photos-section">
-        <h2>Treat Gallery 📸</h2>
-        <div class="card photo-upload-card">
-          <p style="margin-bottom: 12px; font-weight: 600;">Share a photo of your treat!</p>
-          <div class="photo-upload-form">
-            <input type="file" id="gallery-photo-file" accept="image/jpeg,image/png">
-            <button class="btn btn-secondary btn-small" id="gallery-upload-btn">Upload 📷</button>
-          </div>
-          <div class="photo-msg" id="gallery-photo-msg"></div>
-        </div>
-        <div class="photo-grid" id="gallery-photo-grid"></div>
       </div>
       <div class="suggestion-section">
         <h2>Suggestion Box 💡</h2>
@@ -38,6 +25,18 @@ const Photos = (() => {
           </div>
           <div class="photo-msg" id="suggestion-msg"></div>
         </div>
+      </div>
+      <div class="photos-section">
+        <h2>Treat Gallery 📸</h2>
+        <div class="card photo-upload-card">
+          <p style="margin-bottom: 12px; font-weight: 600;">Share photos of your treats!</p>
+          <div class="photo-upload-form">
+            <input type="file" id="gallery-photo-file" accept="image/jpeg,image/png" multiple>
+            <button class="btn btn-secondary btn-small" id="gallery-upload-btn">Upload 📷</button>
+          </div>
+          <div class="photo-msg" id="gallery-photo-msg"></div>
+        </div>
+        <div class="photo-grid" id="gallery-photo-grid"></div>
       </div>
     `;
     showScreen('gallery');
@@ -62,9 +61,9 @@ const Photos = (() => {
       <div class="photos-section">
         <h2>Treat Gallery 📸</h2>
         <div class="card photo-upload-card">
-          <p style="margin-bottom: 12px; font-weight: 600;">Share a photo of your treat!</p>
+          <p style="margin-bottom: 12px; font-weight: 600;">Share photos of your treats!</p>
           <div class="photo-upload-form">
-            <input type="file" id="inline-photo-file" accept="image/jpeg,image/png">
+            <input type="file" id="inline-photo-file" accept="image/jpeg,image/png" multiple>
             <button class="btn btn-secondary btn-small" id="inline-upload-btn">Upload 📷</button>
           </div>
           <div class="photo-msg" id="inline-photo-msg"></div>
@@ -80,56 +79,72 @@ const Photos = (() => {
     loadGalleryGrid('inline-photo-grid');
   }
 
-  /* ── Upload handler ── */
+  /* ── Upload handler (supports multiple files) ── */
 
   async function handleUpload(fileInputId, msgId, gridId) {
     const fileInput = document.getElementById(fileInputId);
     const msg = document.getElementById(msgId);
-    const file = fileInput.files[0];
+    const files = Array.from(fileInput.files);
 
-    if (!file) {
+    if (files.length === 0) {
       msg.textContent = 'Pick a photo first!';
       msg.className = 'photo-msg error';
       return;
     }
 
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      msg.textContent = 'Only JPEG and PNG files allowed.';
-      msg.className = 'photo-msg error';
-      return;
+    // Validate all files first
+    for (const file of files) {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        msg.textContent = `"${file.name}" is not a JPEG or PNG.`;
+        msg.className = 'photo-msg error';
+        return;
+      }
+      if (file.size > MAX_SIZE) {
+        msg.textContent = `"${file.name}" is too large — 5MB max.`;
+        msg.className = 'photo-msg error';
+        return;
+      }
     }
 
-    if (file.size > MAX_SIZE) {
-      msg.textContent = 'File too large — 5MB max.';
-      msg.className = 'photo-msg error';
-      return;
-    }
-
-    msg.textContent = 'Uploading...';
+    msg.textContent = `Uploading ${files.length} photo${files.length > 1 ? 's' : ''}...`;
     msg.className = 'photo-msg';
 
-    const ext = file.name.split('.').pop().toLowerCase();
-    const filename = `pending/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    let uploaded = 0;
+    let failed = 0;
 
-    const { error: uploadErr } = await sb.storage.from(BUCKET).upload(filename, file);
-    if (uploadErr) {
-      console.error('Upload error:', uploadErr);
-      msg.textContent = 'Upload failed — try again.';
-      msg.className = 'photo-msg error';
-      return;
+    for (const file of files) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      const filename = `pending/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+      const { error: uploadErr } = await sb.storage.from(BUCKET).upload(filename, file);
+      if (uploadErr) {
+        console.error('Upload error:', uploadErr);
+        failed++;
+        continue;
+      }
+
+      const { error: dbErr } = await sb.from('photos').insert({ filename, status: 'pending' });
+      if (dbErr) {
+        console.error('DB error:', dbErr);
+        failed++;
+        continue;
+      }
+
+      uploaded++;
     }
 
-    const { error: dbErr } = await sb.from('photos').insert({ filename, status: 'pending' });
-    if (dbErr) {
-      console.error('DB error:', dbErr);
+    if (failed > 0 && uploaded === 0) {
       msg.textContent = 'Upload failed — try again.';
       msg.className = 'photo-msg error';
-      return;
+    } else if (failed > 0) {
+      msg.textContent = `${uploaded} uploaded, ${failed} failed. Cassie will review soon! 🎉`;
+      msg.className = 'photo-msg success';
+    } else {
+      msg.textContent = `${uploaded} photo${uploaded > 1 ? 's' : ''} uploaded! Cassie will review ${uploaded > 1 ? 'them' : 'it'} soon. 🎉`;
+      msg.className = 'photo-msg success';
     }
-
-    msg.textContent = 'Photo uploaded! Cassie will review it soon. 🎉';
-    msg.className = 'photo-msg success';
     fileInput.value = '';
+    loadGalleryGrid(gridId);
   }
 
   async function loadGalleryGrid(gridId) {
