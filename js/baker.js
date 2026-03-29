@@ -347,7 +347,7 @@ const Baker = (() => {
     container.querySelectorAll('.baker-order-chip').forEach(chip => {
       chip.addEventListener('click', (e) => {
         e.stopPropagation();
-        confirmCancel(chip.dataset.orderId, chip.dataset.name, chip.dataset.treat, chip.dataset.date);
+        showOrderActions(chip.dataset.orderId, chip.dataset.name, chip.dataset.treat, chip.dataset.date);
       });
     });
 
@@ -365,12 +365,22 @@ const Baker = (() => {
     });
   }
 
-  async function confirmCancel(orderId, name, treat, date) {
-    const ok = confirm(`Cancel ${name}'s ${treat} order for ${date}?`);
-    if (!ok) return;
+  function showOrderActions(orderId, name, treat, date) {
+    const action = prompt(
+      `${name}'s ${treat} for ${date}\n\nType "complete" to mark as completed\nType "cancel" to cancel the order\n\n(or press Cancel to go back)`
+    );
+    if (!action) return;
+    const choice = action.trim().toLowerCase();
+    if (choice === 'complete' || choice === 'completed') {
+      updateOrderStatus(orderId, 'completed');
+    } else if (choice === 'cancel' || choice === 'cancelled') {
+      updateOrderStatus(orderId, 'cancelled');
+    }
+  }
 
+  async function updateOrderStatus(orderId, newStatus) {
     const { data: order } = await sb.from('orders').select('user_id').eq('id', orderId).single();
-    await sb.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
+    await sb.from('orders').update({ status: newStatus }).eq('id', orderId);
     if (order) {
       await sb.from('users').update({ has_active_order: false }).eq('id', order.user_id);
     }
@@ -409,7 +419,7 @@ const Baker = (() => {
 
     let html = `<table class="order-table">
       <thead>
-        <tr><th>Name</th><th>Treat</th><th>Date</th><th>Destination</th></tr>
+        <tr><th>Name</th><th>Treat</th><th>Date</th><th>Dest</th><th></th></tr>
       </thead>
       <tbody>`;
 
@@ -417,17 +427,30 @@ const Baker = (() => {
       const treat = MENU.find(m => m.name === o.treat);
       const emoji = treat ? treat.emoji : '🍰';
       const userName = o.users ? o.users.display_name : '?';
-      const destLabel = o.destination === 'office' ? '🏢 Office' : '🏠 Home';
+      const destLabel = o.destination === 'office' ? '🏢' : '🏠';
       html += `<tr>
         <td>${userName}</td>
         <td>${emoji} ${o.treat}</td>
         <td>${o.pickup_date}</td>
         <td>${destLabel}</td>
+        <td style="white-space: nowrap;">
+          <button class="btn btn-primary btn-small order-complete-btn" data-id="${o.id}">Done</button>
+          <button class="btn btn-outline btn-small order-cancel-btn" data-id="${o.id}">Cancel</button>
+        </td>
       </tr>`;
     });
 
     html += `</tbody></table>`;
     container.innerHTML = html;
+
+    container.querySelectorAll('.order-complete-btn').forEach(btn => {
+      btn.addEventListener('click', () => updateOrderStatus(btn.dataset.id, 'completed'));
+    });
+    container.querySelectorAll('.order-cancel-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (confirm('Cancel this order?')) updateOrderStatus(btn.dataset.id, 'cancelled');
+      });
+    });
   }
 
   function bindAddUser() {
