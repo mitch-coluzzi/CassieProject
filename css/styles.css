@@ -992,7 +992,7 @@ input:focus, select:focus {
 
 .doggie {
   position: fixed;
-  font-size: 2rem;
+  font-size: 8rem;
   pointer-events: none;
   z-index: 50;
   opacity: 0.6;
@@ -1002,8 +1002,8 @@ input:focus, select:focus {
 .doggie-1 { top: 12%; left: 3%; animation-delay: 0s; }
 .doggie-2 { top: 45%; right: 2%; animation-delay: 0.8s; }
 .doggie-3 { bottom: 15%; left: 5%; animation-delay: 1.5s; }
-.doggie-4 { top: 20%; right: 4%; animation-delay: 2.2s; font-size: 1.6rem; }
-.doggie-5 { bottom: 25%; right: 6%; animation-delay: 0.4s; font-size: 1.4rem; }
+.doggie-4 { top: 20%; right: 4%; animation-delay: 2.2s; font-size: 6.4rem; }
+.doggie-5 { bottom: 25%; right: 6%; animation-delay: 0.4s; font-size: 5.6rem; }
 
 @keyframes doggieBounce {
   0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -1017,13 +1017,13 @@ input:focus, select:focus {
   margin: 32px auto;
   text-align: center;
   position: relative;
-  height: 80px;
-  max-width: 400px;
+  height: 200px;
+  max-width: 600px;
 }
 
 .delivery-car {
   position: absolute;
-  font-size: 2.8rem;
+  font-size: 11.2rem;
   animation: driveAcross 4s ease-in-out infinite;
   white-space: nowrap;
   line-height: 1;
@@ -1031,10 +1031,10 @@ input:focus, select:focus {
 
 .delivery-car .car-treat {
   position: absolute;
-  top: -18px;
+  top: -60px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 1.4rem;
+  font-size: 5.6rem;
 }
 
 .delivery-road {
@@ -1054,6 +1054,6 @@ input:focus, select:focus {
 }
 
 @media (max-width: 768px) {
-  .doggie { font-size: 1.4rem; }
+  .doggie { font-size: 5rem; }
   .doggie-4, .doggie-5 { display: none; }
 }
