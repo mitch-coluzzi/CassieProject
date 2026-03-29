@@ -443,6 +443,7 @@ input:focus, select:focus {
   position: relative;
   min-height: 40px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -471,6 +472,14 @@ input:focus, select:focus {
 .calendar-grid .day-cell.weekend {
   opacity: 0.2;
 }
+.cal-delivery-due {
+  font-size: 0.55rem;
+  color: var(--orange);
+  font-weight: 700;
+  margin-top: 2px;
+  line-height: 1;
+}
+
 .calendar-grid .full-week-label {
   grid-column: 1 / -1;
   font-size: 0.75rem;

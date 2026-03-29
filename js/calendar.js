@@ -107,7 +107,11 @@ const Calendar = (() => {
         classes.push('selected');
       }
 
-      html += `<div class="${classes.join(' ')}" ${clickable ? `data-date="${iso}"` : ''}>${d}</div>`;
+      // Check if a delivery is due on this day
+      const hasDelivery = orders.some(o => o.pickup_date === iso && o.status === 'active');
+      const deliveryLabel = hasDelivery ? '<div class="cal-delivery-due">📦 Delivery</div>' : '';
+
+      html += `<div class="${classes.join(' ')}" ${clickable ? `data-date="${iso}"` : ''}>${d}${deliveryLabel}</div>`;
     }
 
     html += `</div></div>`;
