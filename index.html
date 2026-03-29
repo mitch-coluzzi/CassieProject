@@ -56,6 +56,7 @@
       <div id="recipe-lead" class="modal-lead"></div>
       <h3>Ingredients</h3>
       <ul id="recipe-ingredients"></ul>
+      <a id="recipe-link" class="recipe-link" href="#" target="_blank" rel="noopener" hidden>View Full Recipe</a>
       <button class="btn btn-primary" onclick="document.getElementById('recipe-modal').hidden=true">Got it! 😋</button>
     </div>
   </div>
@@ -88,6 +89,10 @@
       <div class="form-group">
         <label for="menu-edit-ingredients">Ingredients (one per line)</label>
         <textarea id="menu-edit-ingredients" rows="6" placeholder="2 cups flour&#10;1 cup sugar&#10;..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="menu-edit-url">Recipe Link (optional)</label>
+        <input type="text" id="menu-edit-url" placeholder="https://...">
       </div>
       <div class="form-group">
         <label for="menu-edit-sort">Sort Order</label>

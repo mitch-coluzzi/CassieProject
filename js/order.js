@@ -259,6 +259,15 @@ const Order = (() => {
       item.leadDays > 0 ? `⏰ Order at least ${item.leadDays} days ahead!` : '';
     document.getElementById('recipe-ingredients').innerHTML =
       item.ingredients.map(ing => `<li>${ing}</li>`).join('');
+
+    const linkEl = document.getElementById('recipe-link');
+    if (item.recipeUrl) {
+      linkEl.href = item.recipeUrl;
+      linkEl.hidden = false;
+    } else {
+      linkEl.hidden = true;
+    }
+
     document.getElementById('recipe-modal').hidden = false;
   }
 

@@ -210,6 +210,7 @@ const Baker = (() => {
     document.getElementById('menu-edit-lead').value = item ? item.lead_days : 0;
     document.getElementById('menu-edit-ingredients').value = item ? (item.ingredients || []).join('\n') : '';
     document.getElementById('menu-edit-sort').value = item ? item.sort_order : allMenuItems.length + 1;
+    document.getElementById('menu-edit-url').value = item ? (item.recipe_url || '') : '';
     document.getElementById('emoji-picker-grid').hidden = true;
 
     // Badge toggles
@@ -250,7 +251,8 @@ const Baker = (() => {
     }
 
     const badge = document.getElementById('menu-edit-badge').value || 'auto';
-    const row = { name, emoji, description, lead_days, ingredients, sort_order, badge };
+    const recipe_url = document.getElementById('menu-edit-url').value.trim();
+    const row = { name, emoji, description, lead_days, ingredients, sort_order, badge, recipe_url };
 
     if (existingId) {
       await sb.from('menu_items').update(row).eq('id', existingId);

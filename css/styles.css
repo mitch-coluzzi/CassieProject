@@ -546,6 +546,25 @@ input:focus, select:focus {
   content: '🧈 ';
 }
 
+.recipe-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-weight: 700;
+  color: var(--orange);
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.recipe-link:hover {
+  color: var(--pink);
+  text-decoration: underline;
+}
+
+.recipe-link[hidden] {
+  display: none;
+}
+
 /* ============================================
    Baker View
    ============================================ */

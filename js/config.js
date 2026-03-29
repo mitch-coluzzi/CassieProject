@@ -27,6 +27,7 @@ async function loadMenu() {
     description: item.description,
     leadDays: item.lead_days,
     ingredients: item.ingredients || [],
+    recipeUrl: item.recipe_url || '',
     badge: item.badge || 'auto',
     _createdAt: item.created_at
   }));
