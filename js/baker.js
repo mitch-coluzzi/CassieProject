@@ -7,6 +7,7 @@ const Baker = (() => {
   let orders = [];
   let blockedDates = [];
   let users = [];
+  let allMenuItems = []; // includes inactive
 
   function promptPassword() {
     const screen = document.getElementById('screen-baker');
@@ -55,14 +56,16 @@ const Baker = (() => {
   }
 
   async function refreshData() {
-    const [ordersRes, blockedRes, usersRes] = await Promise.all([
+    const [ordersRes, blockedRes, usersRes, menuRes] = await Promise.all([
       sb.from('orders').select('*, users(display_name)').eq('status', 'active').order('pickup_date'),
       sb.from('blocked_dates').select('*'),
-      sb.from('users').select('*').order('display_name')
+      sb.from('users').select('*').order('display_name'),
+      sb.from('menu_items').select('*').order('sort_order')
     ]);
     orders = ordersRes.data || [];
     blockedDates = blockedRes.data || [];
     users = usersRes.data || [];
+    allMenuItems = menuRes.data || [];
   }
 
   function renderBakerView() {
@@ -84,6 +87,14 @@ const Baker = (() => {
       </div>
 
       <div class="baker-section">
+        <h2>Menu Items 🍰</h2>
+        <div class="card" id="baker-menu-list"></div>
+        <div style="margin-top: 12px; text-align: center;">
+          <button class="btn btn-secondary btn-small" id="add-menu-item-btn">+ Add New Item</button>
+        </div>
+      </div>
+
+      <div class="baker-section">
         <h2>Add a Guest</h2>
         <div class="card">
           <div class="baker-add-user">
@@ -95,6 +106,7 @@ const Baker = (() => {
       </div>
 
       <div id="baker-photos-section"></div>
+      <div id="baker-suggestions-section"></div>
 
       <div class="baker-back-btn">
         <button class="btn btn-outline" id="baker-exit">← Back to Site</button>
@@ -103,14 +115,112 @@ const Baker = (() => {
 
     renderBakerCalendar();
     renderOrdersTable();
+    renderMenuManager();
     bindAddUser();
     Photos.renderBakerPhotos(document.getElementById('baker-photos-section'));
+    Photos.renderBakerSuggestions(document.getElementById('baker-suggestions-section'));
+
+    document.getElementById('add-menu-item-btn').addEventListener('click', () => openMenuEditor(null));
 
     document.getElementById('baker-exit').addEventListener('click', () => {
       Login.init();
       showScreen('login');
     });
   }
+
+  /* ── Menu Management ── */
+
+  function renderMenuManager() {
+    const container = document.getElementById('baker-menu-list');
+
+    if (allMenuItems.length === 0) {
+      container.innerHTML = '<p style="padding: 12px; opacity: 0.6;">No menu items.</p>';
+      return;
+    }
+
+    container.innerHTML = `<table class="order-table">
+      <thead><tr><th></th><th>Name</th><th>Lead</th><th>Status</th><th></th></tr></thead>
+      <tbody>${allMenuItems.map(item => `
+        <tr style="${!item.active ? 'opacity: 0.5;' : ''}">
+          <td style="font-size: 1.5rem;">${item.emoji}</td>
+          <td><strong>${item.name}</strong></td>
+          <td>${item.lead_days > 0 ? item.lead_days + 'd' : '—'}</td>
+          <td>${item.active ? '<span style="color: var(--orange); font-weight:700;">Active</span>' : '<span style="opacity:0.5;">Hidden</span>'}</td>
+          <td style="white-space: nowrap;">
+            <button class="btn btn-outline btn-small menu-edit-btn" data-id="${item.id}">Edit</button>
+            <button class="btn btn-small ${item.active ? 'btn-outline' : 'btn-primary'} menu-toggle-btn" data-id="${item.id}" data-active="${item.active}">${item.active ? 'Hide' : 'Show'}</button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+
+    container.querySelectorAll('.menu-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = allMenuItems.find(m => m.id === btn.dataset.id);
+        if (item) openMenuEditor(item);
+      });
+    });
+
+    container.querySelectorAll('.menu-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const isActive = btn.dataset.active === 'true';
+        await sb.from('menu_items').update({ active: !isActive }).eq('id', btn.dataset.id);
+        await refreshData();
+        await loadMenu(); // refresh global MENU
+        renderMenuManager();
+      });
+    });
+  }
+
+  function openMenuEditor(item) {
+    const modal = document.getElementById('menu-edit-modal');
+    document.getElementById('menu-edit-title').textContent = item ? 'Edit Item' : 'Add New Item';
+    document.getElementById('menu-edit-id').value = item ? item.id : '';
+    document.getElementById('menu-edit-name').value = item ? item.name : '';
+    document.getElementById('menu-edit-emoji').value = item ? item.emoji : '🍰';
+    document.getElementById('menu-edit-desc').value = item ? item.description : '';
+    document.getElementById('menu-edit-lead').value = item ? item.lead_days : 0;
+    document.getElementById('menu-edit-ingredients').value = item ? (item.ingredients || []).join('\n') : '';
+    document.getElementById('menu-edit-sort').value = item ? item.sort_order : allMenuItems.length + 1;
+    modal.hidden = false;
+
+    // Remove old listener, add new one
+    const saveBtn = document.getElementById('menu-edit-save');
+    const newBtn = saveBtn.cloneNode(true);
+    saveBtn.parentNode.replaceChild(newBtn, saveBtn);
+    newBtn.addEventListener('click', () => saveMenuItem(item ? item.id : null));
+  }
+
+  async function saveMenuItem(existingId) {
+    const name = document.getElementById('menu-edit-name').value.trim();
+    const emoji = document.getElementById('menu-edit-emoji').value.trim();
+    const description = document.getElementById('menu-edit-desc').value.trim();
+    const lead_days = parseInt(document.getElementById('menu-edit-lead').value) || 0;
+    const ingredients = document.getElementById('menu-edit-ingredients').value
+      .split('\n').map(s => s.trim()).filter(Boolean);
+    const sort_order = parseInt(document.getElementById('menu-edit-sort').value) || 0;
+
+    if (!name || !emoji) {
+      alert('Name and emoji are required!');
+      return;
+    }
+
+    const row = { name, emoji, description, lead_days, ingredients, sort_order };
+
+    if (existingId) {
+      await sb.from('menu_items').update(row).eq('id', existingId);
+    } else {
+      row.active = true;
+      await sb.from('menu_items').insert(row);
+    }
+
+    document.getElementById('menu-edit-modal').hidden = true;
+    await refreshData();
+    await loadMenu(); // refresh global MENU
+    renderMenuManager();
+  }
+
+  /* ── Calendar ── */
 
   function renderBakerCalendar() {
     const container = document.getElementById('baker-cal');
@@ -154,11 +264,9 @@ const Baker = (() => {
         continue;
       }
 
-      // Check if blocked
       const isBlocked = blockedDates.some(bd => bd.date === iso);
       if (isBlocked) classes.push('blocked-day');
 
-      // Orders on this day
       const dayOrders = orders.filter(o => o.pickup_date === iso);
 
       let content = `<div>${d}</div>`;
@@ -180,7 +288,6 @@ const Baker = (() => {
     html += `</div>`;
     container.innerHTML = html;
 
-    // Nav
     container.querySelector('#baker-cal-prev').addEventListener('click', () => {
       bakerMonth--;
       if (bakerMonth < 0) { bakerMonth = 11; bakerYear--; }
@@ -192,7 +299,6 @@ const Baker = (() => {
       renderBakerCalendar();
     });
 
-    // Click order chip → cancel
     container.querySelectorAll('.baker-order-chip').forEach(chip => {
       chip.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -200,7 +306,6 @@ const Baker = (() => {
       });
     });
 
-    // Click empty day → block/unblock
     container.querySelectorAll('.day-cell[data-iso]').forEach(cell => {
       cell.addEventListener('click', (e) => {
         if (e.target.closest('.baker-order-chip')) return;
@@ -219,7 +324,6 @@ const Baker = (() => {
     const ok = confirm(`Cancel ${name}'s ${treat} order for ${date}?`);
     if (!ok) return;
 
-    // Get order to find user_id
     const { data: order } = await sb.from('orders').select('user_id').eq('id', orderId).single();
     await sb.from('orders').update({ status: 'cancelled' }).eq('id', orderId);
     if (order) {

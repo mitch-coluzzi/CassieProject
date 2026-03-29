@@ -27,8 +27,8 @@
     <!-- Celebration Screen -->
     <div id="screen-celebrate" class="screen"></div>
 
-    <!-- Photo Gallery (appended to order/celebrate screens) -->
-    <div id="photo-gallery-section"></div>
+    <!-- Gallery Screen -->
+    <div id="screen-gallery" class="screen"></div>
 
     <!-- Baker View Screen -->
     <div id="screen-baker" class="screen"></div>
@@ -50,6 +50,42 @@
       <h3>Ingredients</h3>
       <ul id="recipe-ingredients"></ul>
       <button class="btn btn-primary" onclick="document.getElementById('recipe-modal').hidden=true">Got it! 😋</button>
+    </div>
+  </div>
+
+  <!-- Menu Edit Modal (Baker) -->
+  <div id="menu-edit-modal" class="modal-overlay" hidden>
+    <div class="modal-card modal-form">
+      <h2 class="modal-title" id="menu-edit-title">Edit Item</h2>
+      <input type="hidden" id="menu-edit-id">
+      <div class="form-group">
+        <label for="menu-edit-name">Name</label>
+        <input type="text" id="menu-edit-name" placeholder="e.g. Banana Cream Pie">
+      </div>
+      <div class="form-group">
+        <label for="menu-edit-emoji">Emoji</label>
+        <input type="text" id="menu-edit-emoji" placeholder="e.g. 🍌">
+      </div>
+      <div class="form-group">
+        <label for="menu-edit-desc">Description</label>
+        <textarea id="menu-edit-desc" rows="3" placeholder="A short fun description..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="menu-edit-lead">Lead Days</label>
+        <input type="number" id="menu-edit-lead" min="0" max="30" value="0">
+      </div>
+      <div class="form-group">
+        <label for="menu-edit-ingredients">Ingredients (one per line)</label>
+        <textarea id="menu-edit-ingredients" rows="6" placeholder="2 cups flour&#10;1 cup sugar&#10;..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="menu-edit-sort">Sort Order</label>
+        <input type="number" id="menu-edit-sort" min="0" value="0">
+      </div>
+      <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
+        <button class="btn btn-primary" id="menu-edit-save">Save</button>
+        <button class="btn btn-outline" onclick="document.getElementById('menu-edit-modal').hidden=true">Cancel</button>
+      </div>
     </div>
   </div>
 

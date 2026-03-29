@@ -7,18 +7,26 @@ const Order = (() => {
   let selectedDest = null;
   let allOrders = [];
   let allBlocked = [];
+  let orderCounts = {}; // treat name → number of orders ever placed
 
   async function init() {
     selectedTreat = null;
     selectedDest = null;
 
-    // Fetch orders and blocked dates
-    const [ordersRes, blockedRes] = await Promise.all([
+    // Fetch orders, blocked dates, and historical order counts
+    const [ordersRes, blockedRes, allOrdersRes] = await Promise.all([
       sb.from('orders').select('*').eq('status', 'active'),
-      sb.from('blocked_dates').select('*')
+      sb.from('blocked_dates').select('*'),
+      sb.from('orders').select('treat')
     ]);
     allOrders = ordersRes.data || [];
     allBlocked = blockedRes.data || [];
+
+    // Count how many times each treat has been ordered
+    orderCounts = {};
+    (allOrdersRes.data || []).forEach(o => {
+      orderCounts[o.treat] = (orderCounts[o.treat] || 0) + 1;
+    });
 
     const displayName = sessionStorage.getItem('displayName');
 
@@ -27,6 +35,7 @@ const Order = (() => {
       <div class="order-header">
         <h1>Pick Your Treat 🍰</h1>
         <p>Choose something yummy, ${displayName}!</p>
+        <button class="btn btn-outline btn-small" id="order-gallery-link" style="margin-top: 12px;">Gallery & Suggestions 📸</button>
       </div>
       <div class="order-layout">
         <div class="menu-section">
@@ -55,6 +64,10 @@ const Order = (() => {
       </div>
     `;
 
+    document.getElementById('order-gallery-link').addEventListener('click', () => {
+      Photos.showGalleryScreen('order');
+    });
+
     renderMenu();
     bindDestination();
     bindSubmit();
@@ -62,14 +75,34 @@ const Order = (() => {
 
   function renderMenu() {
     const grid = document.getElementById('menu-grid');
-    grid.innerHTML = MENU.map((item, i) => `
-      <div class="menu-card" data-index="${i}">
-        <span class="menu-emoji">${item.emoji}</span>
-        <div class="menu-name">${item.name}</div>
-        ${item.leadDays > 0 ? `<div class="menu-lead">⏰ ${item.leadDays}-day lead</div>` : '<div class="menu-lead" style="visibility:hidden">-</div>'}
-        <button class="btn btn-outline btn-small recipe-btn" data-index="${i}">See Recipe 📖</button>
-      </div>
-    `).join('');
+
+    // Sort: NEW first, then BE THE FIRST, then everything else
+    const sorted = MENU.map((item, origIndex) => {
+      const isNew = isNewItem(item);
+      const neverOrdered = !orderCounts[item.name];
+      let priority = 2; // normal
+      if (isNew) priority = 0;
+      else if (neverOrdered) priority = 1;
+      return { item, origIndex, isNew, neverOrdered, priority };
+    }).sort((a, b) => a.priority - b.priority);
+
+    grid.innerHTML = sorted.map(({ item, origIndex, isNew, neverOrdered }) => {
+      let badge = '';
+      if (isNew) {
+        badge = '<span class="menu-badge badge-new">NEW</span>';
+      } else if (neverOrdered) {
+        badge = '<span class="menu-badge badge-first">BE THE FIRST</span>';
+      }
+
+      return `
+        <div class="menu-card" data-index="${origIndex}">
+          ${badge}
+          <span class="menu-emoji">${item.emoji}</span>
+          <div class="menu-name">${item.name}</div>
+          ${item.leadDays > 0 ? `<div class="menu-lead">⏰ ${item.leadDays}-day lead</div>` : '<div class="menu-lead" style="visibility:hidden">-</div>'}
+          <button class="btn btn-outline btn-small recipe-btn" data-index="${origIndex}">See Recipe 📖</button>
+        </div>`;
+    }).join('');
 
     // Card selection
     grid.querySelectorAll('.menu-card').forEach(card => {
@@ -88,13 +121,22 @@ const Order = (() => {
     });
   }
 
+  function isNewItem(item) {
+    // "New" = added within the last 14 days (uses id from DB which has created_at)
+    if (!item._createdAt) return false;
+    const created = new Date(item._createdAt);
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    return created > twoWeeksAgo;
+  }
+
   function selectTreat(index) {
     selectedTreat = MENU[index];
     Calendar.clearSelection();
 
     // Highlight card
-    document.querySelectorAll('.menu-card').forEach((c, i) => {
-      c.classList.toggle('selected', i === index);
+    document.querySelectorAll('.menu-card').forEach(c => {
+      c.classList.toggle('selected', +c.dataset.index === index);
     });
 
     // Show treat display
@@ -182,10 +224,16 @@ const Order = (() => {
       <h1 class="celebrate-title">Yay!</h1>
       <p class="celebrate-msg">Your treat is coming ${dateStr}, ${firstName}!</p>
       <p class="celebrate-msg">Cassie's on it! 🍰</p>
+      <div style="margin-top: 24px;">
+        <button class="btn btn-outline btn-small" id="celebrate-gallery-link">Gallery & Suggestions 📸</button>
+      </div>
     `;
     showScreen('celebrate');
     Confetti.fire();
-    Photos.renderGallery(document.getElementById('photo-gallery-section'));
+
+    document.getElementById('celebrate-gallery-link').addEventListener('click', () => {
+      Photos.showGalleryScreen('celebrate');
+    });
   }
 
   function openRecipe(index) {

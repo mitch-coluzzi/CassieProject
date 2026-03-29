@@ -1,5 +1,5 @@
 /* ============================================
-   photos.js — Photo upload + gallery + baker review
+   photos.js — Photo gallery + suggestions
    ============================================ */
 
 const Photos = (() => {
@@ -7,7 +7,55 @@ const Photos = (() => {
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
   const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 
-  /* ── Guest: upload form + approved gallery ── */
+  /* ── Gallery Screen (standalone) ── */
+
+  function showGalleryScreen(returnScreen) {
+    const screen = document.getElementById('screen-gallery');
+    const displayName = sessionStorage.getItem('displayName') || 'Guest';
+    screen.innerHTML = `
+      <div class="gallery-back">
+        <button class="btn btn-outline btn-small" id="gallery-back-btn">← Back</button>
+      </div>
+      <div class="photos-section">
+        <h2>Treat Gallery 📸</h2>
+        <div class="card photo-upload-card">
+          <p style="margin-bottom: 12px; font-weight: 600;">Share a photo of your treat!</p>
+          <div class="photo-upload-form">
+            <input type="file" id="gallery-photo-file" accept="image/jpeg,image/png">
+            <button class="btn btn-secondary btn-small" id="gallery-upload-btn">Upload 📷</button>
+          </div>
+          <div class="photo-msg" id="gallery-photo-msg"></div>
+        </div>
+        <div class="photo-grid" id="gallery-photo-grid"></div>
+      </div>
+      <div class="suggestion-section">
+        <h2>Suggestion Box 💡</h2>
+        <div class="card">
+          <p style="margin-bottom: 12px; font-weight: 600;">What should Cassie bake next?</p>
+          <div class="suggestion-form">
+            <textarea id="suggestion-text" rows="3" placeholder="I'd love it if you made..."></textarea>
+            <button class="btn btn-secondary btn-small" id="suggestion-submit-btn">Send Suggestion 📬</button>
+          </div>
+          <div class="photo-msg" id="suggestion-msg"></div>
+        </div>
+      </div>
+    `;
+    showScreen('gallery');
+
+    document.getElementById('gallery-back-btn').addEventListener('click', () => {
+      showScreen(returnScreen || 'order');
+    });
+
+    document.getElementById('gallery-upload-btn').addEventListener('click', () => {
+      handleUpload('gallery-photo-file', 'gallery-photo-msg', 'gallery-photo-grid');
+    });
+
+    document.getElementById('suggestion-submit-btn').addEventListener('click', submitSuggestion);
+
+    loadGalleryGrid('gallery-photo-grid');
+  }
+
+  /* ── Inline gallery (for celebrate screen) ── */
 
   function renderGallery(container) {
     container.innerHTML = `
@@ -16,22 +64,27 @@ const Photos = (() => {
         <div class="card photo-upload-card">
           <p style="margin-bottom: 12px; font-weight: 600;">Share a photo of your treat!</p>
           <div class="photo-upload-form">
-            <input type="file" id="photo-file" accept="image/jpeg,image/png">
-            <button class="btn btn-secondary btn-small" id="photo-upload-btn">Upload 📷</button>
+            <input type="file" id="inline-photo-file" accept="image/jpeg,image/png">
+            <button class="btn btn-secondary btn-small" id="inline-upload-btn">Upload 📷</button>
           </div>
-          <div class="photo-msg" id="photo-msg"></div>
+          <div class="photo-msg" id="inline-photo-msg"></div>
         </div>
-        <div class="photo-grid" id="photo-grid"></div>
+        <div class="photo-grid" id="inline-photo-grid"></div>
       </div>
     `;
 
-    document.getElementById('photo-upload-btn').addEventListener('click', handleUpload);
-    loadGallery();
+    document.getElementById('inline-upload-btn').addEventListener('click', () => {
+      handleUpload('inline-photo-file', 'inline-photo-msg', 'inline-photo-grid');
+    });
+
+    loadGalleryGrid('inline-photo-grid');
   }
 
-  async function handleUpload() {
-    const fileInput = document.getElementById('photo-file');
-    const msg = document.getElementById('photo-msg');
+  /* ── Upload handler ── */
+
+  async function handleUpload(fileInputId, msgId, gridId) {
+    const fileInput = document.getElementById(fileInputId);
+    const msg = document.getElementById(msgId);
     const file = fileInput.files[0];
 
     if (!file) {
@@ -79,8 +132,8 @@ const Photos = (() => {
     fileInput.value = '';
   }
 
-  async function loadGallery() {
-    const grid = document.getElementById('photo-grid');
+  async function loadGalleryGrid(gridId) {
+    const grid = document.getElementById(gridId);
     const { data: photos, error } = await sb
       .from('photos')
       .select('*')
@@ -98,7 +151,35 @@ const Photos = (() => {
     }).join('');
   }
 
-  /* ── Baker: review pending + manage approved ── */
+  /* ── Suggestion Box ── */
+
+  async function submitSuggestion() {
+    const textarea = document.getElementById('suggestion-text');
+    const msg = document.getElementById('suggestion-msg');
+    const text = textarea.value.trim();
+
+    if (!text) {
+      msg.textContent = 'Write a suggestion first!';
+      msg.className = 'photo-msg error';
+      return;
+    }
+
+    const userName = sessionStorage.getItem('displayName') || 'Anonymous';
+    const { error } = await sb.from('suggestions').insert({ user_name: userName, suggestion: text });
+
+    if (error) {
+      console.error('Suggestion error:', error);
+      msg.textContent = 'Something went wrong — try again.';
+      msg.className = 'photo-msg error';
+      return;
+    }
+
+    msg.textContent = 'Suggestion sent! Thanks for the idea! 🎉';
+    msg.className = 'photo-msg success';
+    textarea.value = '';
+  }
+
+  /* ── Baker: photo review ── */
 
   function renderBakerPhotos(container) {
     container.innerHTML = `
@@ -160,6 +241,48 @@ const Photos = (() => {
     }
   }
 
+  /* ── Baker: suggestions review ── */
+
+  function renderBakerSuggestions(container) {
+    container.innerHTML = `
+      <div class="baker-section">
+        <h2>Suggestion Box 💡</h2>
+        <div class="card" id="baker-suggestions-list"></div>
+      </div>
+    `;
+    loadBakerSuggestions();
+  }
+
+  async function loadBakerSuggestions() {
+    const list = document.getElementById('baker-suggestions-list');
+    const { data: suggestions, error } = await sb
+      .from('suggestions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !suggestions || suggestions.length === 0) {
+      list.innerHTML = '<p style="padding: 12px; opacity: 0.6;">No suggestions yet.</p>';
+      return;
+    }
+
+    list.innerHTML = `<table class="order-table">
+      <thead><tr><th>From</th><th>Suggestion</th><th>Date</th><th></th></tr></thead>
+      <tbody>${suggestions.map(s => `
+        <tr>
+          <td>${s.user_name}</td>
+          <td>${s.suggestion}</td>
+          <td>${new Date(s.created_at).toLocaleDateString()}</td>
+          <td><button class="btn btn-outline btn-small" onclick="Photos.removeSuggestion('${s.id}')">Dismiss</button></td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+  }
+
+  async function removeSuggestion(id) {
+    await sb.from('suggestions').delete().eq('id', id);
+    loadBakerSuggestions();
+  }
+
   async function approve(id) {
     await sb.from('photos').update({ status: 'approved' }).eq('id', id);
     loadBakerPhotos();
@@ -172,5 +295,5 @@ const Photos = (() => {
     loadBakerPhotos();
   }
 
-  return { renderGallery, renderBakerPhotos, approve, remove };
+  return { renderGallery, renderBakerPhotos, renderBakerSuggestions, showGalleryScreen, approve, remove, removeSuggestion };
 })();

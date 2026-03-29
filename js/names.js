@@ -70,9 +70,16 @@ const Names = (() => {
           <div class="order-detail">${order.destination === 'office' ? '🏢 Office' : '🏠 Home'}</div>
         ` : ''}
         <p style="margin-top: 20px; opacity: 0.7;">Talk to Cassie if you need to make a change.</p>
+        <div style="margin-top: 20px;">
+          <button class="btn btn-outline btn-small" id="already-gallery-link">Gallery & Suggestions 📸</button>
+        </div>
       </div>
     `;
     showScreen('already');
+
+    document.getElementById('already-gallery-link').addEventListener('click', () => {
+      Photos.showGalleryScreen('already');
+    });
   }
 
   return { init };

@@ -1,60 +1,7 @@
--- Request A Treat — Supabase Setup
--- Run this in the Supabase SQL Editor (all at once)
+-- Request A Treat — v2 Migration
+-- Run this in the Supabase SQL Editor
 
--- 1. Create tables
-create table users (
-  id uuid primary key default gen_random_uuid(),
-  display_name text not null,
-  has_active_order boolean default false,
-  created_at timestamptz default now()
-);
-
-create table orders (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references users(id),
-  treat text not null,
-  pickup_date date not null,
-  destination text not null check (destination in ('office', 'home')),
-  status text default 'active' check (status in ('active', 'cancelled')),
-  created_at timestamptz default now()
-);
-
-create table blocked_dates (
-  id uuid primary key default gen_random_uuid(),
-  date date not null,
-  blocked_by_week boolean default false,
-  created_at timestamptz default now()
-);
-
--- 2. Seed users
-insert into users (display_name) values
-  ('Di S'),
-  ('Paw Paw'),
-  ('Gracie V'),
-  ('Grace C'),
-  ('Nicole W'),
-  ('James F'),
-  ('Dad'),
-  ('Mom'),
-  ('Celeste R'),
-  ('Connor W'),
-  ('Jen B');
-
--- 3. Photos table
-create table photos (
-  id uuid primary key default gen_random_uuid(),
-  filename text not null,
-  status text default 'pending' check (status in ('pending', 'approved')),
-  created_at timestamptz default now()
-);
-
-alter table photos enable row level security;
-create policy "Public read photos" on photos for select using (true);
-create policy "Public insert photos" on photos for insert with check (true);
-create policy "Public update photos" on photos for update using (true);
-create policy "Public delete photos" on photos for delete using (true);
-
--- 4. Menu items table
+-- 1. Menu items table
 create table menu_items (
   id uuid primary key default gen_random_uuid(),
   name text not null unique,
@@ -67,13 +14,14 @@ create table menu_items (
   created_at timestamptz default now()
 );
 
+-- Menu items RLS
 alter table menu_items enable row level security;
 create policy "Public read menu_items" on menu_items for select using (true);
 create policy "Public insert menu_items" on menu_items for insert with check (true);
 create policy "Public update menu_items" on menu_items for update using (true);
 create policy "Public delete menu_items" on menu_items for delete using (true);
 
--- Seed menu
+-- Seed current menu
 insert into menu_items (name, emoji, description, lead_days, ingredients, sort_order) values
   ('Banana Cream Pie', '🍌', 'Silky smooth banana cream piled high in a buttery crust. Worth the wait!', 7, ARRAY['2 cups whole milk','3 egg yolks','½ cup sugar','3 tbsp cornstarch','2 tbsp butter','1 tsp vanilla','3 ripe bananas','1 pre-baked pie crust','1 cup whipped cream'], 1),
   ('Pumpkin Pie', '🎃', 'Warm spiced pumpkin in a flaky crust. A fall favorite!', 5, ARRAY['1 can (15 oz) pumpkin puree','¾ cup sugar','1 tsp cinnamon','½ tsp ginger','¼ tsp cloves','2 eggs','1 can evaporated milk','1 unbaked pie crust'], 2),
@@ -83,7 +31,7 @@ insert into menu_items (name, emoji, description, lead_days, ingredients, sort_o
   ('Chocolate Cake', '🎂', 'A classic layer cake with rich chocolate frosting. Serves 8–10!', 0, ARRAY['2 cups flour','2 cups sugar','¾ cup cocoa powder','2 tsp baking soda','1 tsp salt','2 eggs','1 cup buttermilk','1 cup strong black coffee','½ cup vegetable oil','2 tsp vanilla','Chocolate buttercream frosting'], 6),
   ('Vanilla Cake', '🍰', 'Light and fluffy vanilla layer cake with creamy vanilla frosting. A crowd pleaser!', 0, ARRAY['2½ cups flour','2 cups sugar','1 tbsp baking powder','½ tsp salt','1 cup butter (softened)','4 eggs','1 cup whole milk','2 tsp vanilla extract','Vanilla buttercream frosting'], 7);
 
--- 5. Suggestions table
+-- 2. Suggestions table
 create table suggestions (
   id uuid primary key default gen_random_uuid(),
   user_name text not null,
@@ -95,9 +43,3 @@ alter table suggestions enable row level security;
 create policy "Public read suggestions" on suggestions for select using (true);
 create policy "Public insert suggestions" on suggestions for insert with check (true);
 create policy "Public delete suggestions" on suggestions for delete using (true);
-
--- 6. Create storage bucket (do this in Supabase Dashboard > Storage > New Bucket)
--- Bucket name: treat-photos
--- Public: YES
--- Allowed MIME types: image/jpeg, image/png
--- Max file size: 5MB

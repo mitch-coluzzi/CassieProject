@@ -7,57 +7,29 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const MENU = [
-  {
-    name: "Banana Cream Pie",
-    emoji: "🍌",
-    leadDays: 7,
-    description: "Silky smooth banana cream piled high in a buttery crust. Worth the wait!",
-    ingredients: ["2 cups whole milk","3 egg yolks","½ cup sugar","3 tbsp cornstarch","2 tbsp butter","1 tsp vanilla","3 ripe bananas","1 pre-baked pie crust","1 cup whipped cream"]
-  },
-  {
-    name: "Pumpkin Pie",
-    emoji: "🎃",
-    leadDays: 5,
-    description: "Warm spiced pumpkin in a flaky crust. A fall favorite!",
-    ingredients: ["1 can (15 oz) pumpkin puree","¾ cup sugar","1 tsp cinnamon","½ tsp ginger","¼ tsp cloves","2 eggs","1 can evaporated milk","1 unbaked pie crust"]
-  },
-  {
-    name: "Banana Bread",
-    emoji: "🍞",
-    leadDays: 7,
-    description: "Super moist and packed with banana flavor. Great for breakfast or a snack!",
-    ingredients: ["3 very ripe bananas","⅓ cup melted butter","¾ cup sugar","1 egg","1 tsp vanilla","1 tsp baking soda","Pinch of salt","1½ cups flour"]
-  },
-  {
-    name: "Pumpkin Muffins",
-    emoji: "🧁",
-    leadDays: 5,
-    description: "Fluffy spiced pumpkin muffins with a golden top. A dozen per order!",
-    ingredients: ["1¾ cups flour","1 cup sugar","1 tsp baking soda","2 tsp pumpkin spice","½ tsp salt","2 eggs","1 cup pumpkin puree","½ cup vegetable oil","¼ cup water"]
-  },
-  {
-    name: "Chocolate Muffins",
-    emoji: "🍫",
-    leadDays: 0,
-    description: "Rich, fudgy chocolate muffins. A dozen per order — share if you dare!",
-    ingredients: ["1¾ cups flour","¾ cup cocoa powder","1½ cups sugar","2 tsp baking powder","½ tsp salt","2 eggs","1 cup milk","½ cup vegetable oil","1 tsp vanilla","1 cup chocolate chips"]
-  },
-  {
-    name: "Chocolate Cake",
-    emoji: "🎂",
-    leadDays: 0,
-    description: "A classic layer cake with rich chocolate frosting. Serves 8–10!",
-    ingredients: ["2 cups flour","2 cups sugar","¾ cup cocoa powder","2 tsp baking soda","1 tsp salt","2 eggs","1 cup buttermilk","1 cup strong black coffee","½ cup vegetable oil","2 tsp vanilla","Chocolate buttercream frosting"]
-  },
-  {
-    name: "Vanilla Cake",
-    emoji: "🍰",
-    leadDays: 0,
-    description: "Light and fluffy vanilla layer cake with creamy vanilla frosting. A crowd pleaser!",
-    ingredients: ["2½ cups flour","2 cups sugar","1 tbsp baking powder","½ tsp salt","1 cup butter (softened)","4 eggs","1 cup whole milk","2 tsp vanilla extract","Vanilla buttercream frosting"]
+/* MENU is loaded from Supabase at boot */
+let MENU = [];
+
+async function loadMenu() {
+  const { data, error } = await sb
+    .from('menu_items')
+    .select('*')
+    .eq('active', true)
+    .order('sort_order');
+  if (error) {
+    console.error('Failed to load menu:', error);
+    return;
   }
-];
+  MENU = data.map(item => ({
+    id: item.id,
+    name: item.name,
+    emoji: item.emoji,
+    description: item.description,
+    leadDays: item.lead_days,
+    ingredients: item.ingredients || [],
+    _createdAt: item.created_at
+  }));
+}
 
 /* ── Date helpers ── */
 

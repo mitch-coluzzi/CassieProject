@@ -2,7 +2,10 @@
    app.js — Boot + routing
    ============================================ */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // Load menu from Supabase before anything renders
+  await loadMenu();
+
   // Initialize login screen
   Login.init();
 
@@ -12,17 +15,19 @@ document.addEventListener('DOMContentLoaded', () => {
     Baker.promptPassword();
   });
 
-  // Close recipe modal on backdrop click
+  // Close modals on backdrop click
   document.getElementById('recipe-modal').addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) {
-      e.currentTarget.hidden = true;
-    }
+    if (e.target === e.currentTarget) e.currentTarget.hidden = true;
+  });
+  document.getElementById('menu-edit-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.hidden = true;
   });
 
-  // Close modal on Escape
+  // Close modals on Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.getElementById('recipe-modal').hidden = true;
+      document.getElementById('menu-edit-modal').hidden = true;
     }
   });
 });

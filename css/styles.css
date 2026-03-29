@@ -799,3 +799,116 @@ input:focus, select:focus {
   padding: 8px;
   justify-content: center;
 }
+
+/* ── Menu Badges (NEW / BE THE FIRST) ── */
+
+.menu-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
+.menu-card {
+  position: relative;
+}
+.badge-new {
+  background: var(--orange);
+  color: var(--white);
+  animation: badgePulse 2s infinite;
+}
+.badge-first {
+  background: var(--pink);
+  color: var(--white);
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* ── Gallery Screen ── */
+
+.gallery-back {
+  margin-bottom: 16px;
+}
+
+/* ── Suggestion Box ── */
+
+.suggestion-section {
+  max-width: 700px;
+  margin: 40px auto 0;
+}
+
+.suggestion-section h2 {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.suggestion-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.suggestion-form textarea {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  border: 2px solid var(--gray);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  width: 100%;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.suggestion-form textarea:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+/* ── Menu Edit Modal ── */
+
+.modal-form {
+  text-align: left;
+  max-width: 520px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.form-group textarea {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  border: 2px solid var(--gray);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  width: 100%;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group textarea:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+}
+
+.form-group input[type="number"] {
+  width: 100px;
+}
