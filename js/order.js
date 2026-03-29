@@ -232,8 +232,10 @@ const Order = (() => {
     const firstName = displayName.split(' ')[0];
     const dateStr = formatDate(Calendar.getSelectedDate());
     const treatEmoji = selectedTreat ? selectedTreat.emoji : '🍰';
+    const pupImg = getPupImage(selectedTreat ? selectedTreat.name : '');
     const screen = document.getElementById('screen-celebrate');
     screen.innerHTML = `
+      <img src="${pupImg}" alt="Treat Pup" class="pup-image pup-confirm">
       <div class="celebrate-emoji">🎉</div>
       <h1 class="celebrate-title">Yay!</h1>
       <p class="celebrate-msg">Your treat is coming ${dateStr}, ${firstName}!</p>

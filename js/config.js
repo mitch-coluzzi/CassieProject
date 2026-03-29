@@ -72,6 +72,16 @@ function dateToISO(date) {
   return `${y}-${m}-${d}`;
 }
 
+/* ── Pup image mapping ── */
+
+function getPupImage(treatName) {
+  const name = (treatName || '').toLowerCase();
+  if (name.includes('muffin')) return 'images/Pup - Cupcake.png';
+  if (name.includes('cake')) return 'images/Pup - Cake.png';
+  if (name.includes('banana') || name.includes('pumpkin') || name.includes('pie')) return 'images/Pup - Banana.png';
+  return 'images/Pup - Cake.png'; // default
+}
+
 /* ── View switching ── */
 
 function showScreen(id) {

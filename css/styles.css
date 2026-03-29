@@ -988,6 +988,38 @@ input:focus, select:focus {
   background: rgba(255, 107, 53, 0.08);
 }
 
+/* ── Pup Images ── */
+
+.pup-image {
+  display: block;
+  margin: 0 auto 20px;
+  max-height: 240px;
+  width: auto;
+  border-radius: var(--radius);
+}
+
+.pup-password {
+  max-height: 200px;
+  margin-bottom: 24px;
+}
+
+.pup-baker {
+  max-height: 220px;
+  margin-bottom: 16px;
+}
+
+.pup-confirm {
+  max-height: 260px;
+  margin-bottom: 16px;
+  animation: pupBounce 1s ease-in-out;
+}
+
+@keyframes pupBounce {
+  0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+  60% { transform: scale(1.1) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
 /* ── Cute Doggies ── */
 
 .doggie {

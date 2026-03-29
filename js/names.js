@@ -6,6 +6,7 @@ const Names = (() => {
   async function init() {
     const screen = document.getElementById('screen-names');
     screen.innerHTML = `
+      <img src="images/Pup - Baker.png" alt="Baker Pup" class="pup-image pup-baker">
       <div class="card names-card">
         <h1>Who are you? 👋</h1>
         <select id="name-select">
@@ -60,7 +61,9 @@ const Names = (() => {
     const order = activeOrders && activeOrders[0];
     const treat = order ? MENU.find(m => m.name === order.treat) : null;
 
+    const pupImg = order ? getPupImage(order.treat) : 'images/Pup - Cake.png';
     screen.innerHTML = `
+      <img src="${pupImg}" alt="Treat Pup" class="pup-image pup-confirm">
       <div class="card already-card">
         <h1>You're already on the list! 🎉</h1>
         <p>You already have a treat on the way!</p>
