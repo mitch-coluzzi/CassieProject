@@ -433,7 +433,7 @@ const Baker = (() => {
 
     let html = `<table class="order-table">
       <thead>
-        <tr><th>Name</th><th>Treat</th><th>Date</th><th>Dest</th><th></th></tr>
+        <tr><th>Name</th><th>Treat</th><th>Ordered</th><th>Delivery</th><th>Dest</th><th></th></tr>
       </thead>
       <tbody>`;
 
@@ -442,9 +442,11 @@ const Baker = (() => {
       const emoji = treat ? treat.emoji : '🍰';
       const userName = o.users ? o.users.display_name : '?';
       const destLabel = o.destination === 'office' ? '🏢' : '🏠';
+      const orderedDate = new Date(o.created_at).toLocaleDateString();
       html += `<tr>
         <td>${userName}</td>
         <td>${emoji} ${o.treat}</td>
+        <td>${orderedDate}</td>
         <td>${o.pickup_date}</td>
         <td>${destLabel}</td>
         <td style="white-space: nowrap;">

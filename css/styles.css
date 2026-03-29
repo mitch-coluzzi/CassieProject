@@ -1048,6 +1048,11 @@ input:focus, select:focus {
   z-index: 50;
   opacity: 0.6;
   animation: doggieBounce 3s ease-in-out infinite;
+  overflow: hidden;
+}
+
+body {
+  overflow-x: hidden;
 }
 
 .doggie-1 { top: 12%; left: 3%; animation-delay: 0s; }
