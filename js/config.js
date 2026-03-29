@@ -76,10 +76,10 @@ function dateToISO(date) {
 
 function getPupImage(treatName) {
   const name = (treatName || '').toLowerCase();
-  if (name.includes('muffin')) return 'images/Pup - Cupcake.png';
-  if (name.includes('cake')) return 'images/Pup - Cake.png';
-  if (name.includes('banana') || name.includes('pumpkin') || name.includes('pie')) return 'images/Pup - Banana.png';
-  return 'images/Pup - Cake.png'; // default
+  if (name.includes('muffin')) return 'images/pup-cupcake.png';
+  if (name.includes('cake')) return 'images/pup-cake.png';
+  if (name.includes('banana') || name.includes('pumpkin') || name.includes('pie')) return 'images/pup-banana.png';
+  return 'images/pup-cake.png'; // default
 }
 
 /* ── View switching ── */

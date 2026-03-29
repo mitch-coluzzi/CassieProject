@@ -6,7 +6,7 @@ const Names = (() => {
   async function init() {
     const screen = document.getElementById('screen-names');
     screen.innerHTML = `
-      <img src="images/Pup - Baker.png" alt="Baker Pup" class="pup-image pup-baker">
+      <img src="images/pup-baker.png" alt="Baker Pup" class="pup-image pup-baker">
       <div class="card names-card">
         <h1>Who are you? 👋</h1>
         <select id="name-select">

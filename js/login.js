@@ -9,7 +9,7 @@ const Login = (() => {
       <h1 class="login-title">Request A Treat 🍰</h1>
       <p class="login-subtitle">Cassie's homemade desserts, just for you!</p>
       <div class="card login-card">
-        <img src="images/Pup - Password.png" alt="Pup with TREATS sign" class="pup-image pup-password">
+        <img src="images/pup-password.png" alt="Pup with TREATS sign" class="pup-image pup-password">
         <div class="login-input-group">
           <input type="password" id="login-password" placeholder="Type the secret word... 🤫" autocomplete="off">
         </div>
