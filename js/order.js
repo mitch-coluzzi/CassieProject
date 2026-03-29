@@ -76,21 +76,34 @@ const Order = (() => {
   function renderMenu() {
     const grid = document.getElementById('menu-grid');
 
-    // Sort: NEW first, then BE THE FIRST, then everything else
+    // Determine badge for each item, then sort: NEW first, BE THE FIRST second, rest after
     const sorted = MENU.map((item, origIndex) => {
-      const isNew = isNewItem(item);
-      const neverOrdered = !orderCounts[item.name];
-      let priority = 2; // normal
-      if (isNew) priority = 0;
-      else if (neverOrdered) priority = 1;
-      return { item, origIndex, isNew, neverOrdered, priority };
+      let showBadge = 'none';
+
+      if (item.badge === 'new') {
+        showBadge = 'new';
+      } else if (item.badge === 'first') {
+        showBadge = 'first';
+      } else if (item.badge === 'none') {
+        showBadge = 'none';
+      } else {
+        // auto: NEW if created within 14 days, BE THE FIRST if never ordered
+        if (isNewItem(item)) showBadge = 'new';
+        else if (!orderCounts[item.name]) showBadge = 'first';
+      }
+
+      let priority = 2;
+      if (showBadge === 'new') priority = 0;
+      else if (showBadge === 'first') priority = 1;
+
+      return { item, origIndex, showBadge, priority };
     }).sort((a, b) => a.priority - b.priority);
 
-    grid.innerHTML = sorted.map(({ item, origIndex, isNew, neverOrdered }) => {
+    grid.innerHTML = sorted.map(({ item, origIndex, showBadge }) => {
       let badge = '';
-      if (isNew) {
+      if (showBadge === 'new') {
         badge = '<span class="menu-badge badge-new">NEW</span>';
-      } else if (neverOrdered) {
+      } else if (showBadge === 'first') {
         badge = '<span class="menu-badge badge-first">BE THE FIRST</span>';
       }
 

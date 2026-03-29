@@ -64,7 +64,11 @@
       </div>
       <div class="form-group">
         <label for="menu-edit-emoji">Emoji</label>
-        <input type="text" id="menu-edit-emoji" placeholder="e.g. 🍌">
+        <div class="emoji-picker-wrapper">
+          <input type="text" id="menu-edit-emoji" placeholder="Pick or type..." readonly>
+          <button type="button" class="btn btn-outline btn-small" id="emoji-picker-toggle">Choose</button>
+        </div>
+        <div class="emoji-picker-grid" id="emoji-picker-grid" hidden></div>
       </div>
       <div class="form-group">
         <label for="menu-edit-desc">Description</label>
@@ -81,6 +85,16 @@
       <div class="form-group">
         <label for="menu-edit-sort">Sort Order</label>
         <input type="number" id="menu-edit-sort" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>Badge</label>
+        <div class="badge-toggles">
+          <button type="button" class="badge-toggle" data-badge="auto">Auto</button>
+          <button type="button" class="badge-toggle" data-badge="new">NEW</button>
+          <button type="button" class="badge-toggle" data-badge="first">BE THE FIRST</button>
+          <button type="button" class="badge-toggle" data-badge="none">None</button>
+        </div>
+        <input type="hidden" id="menu-edit-badge" value="auto">
       </div>
       <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px;">
         <button class="btn btn-primary" id="menu-edit-save">Save</button>

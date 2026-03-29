@@ -172,6 +172,34 @@ const Baker = (() => {
     });
   }
 
+  const EMOJI_OPTIONS = [
+    '🍰','🎂','🧁','🍌','🍞','🎃','🍫','🍪','🍩','🥧',
+    '🍮','🍦','🧇','🥞','🍬','🍭','🍡','🥐','🥖','🥨',
+    '🫐','🍓','🍒','🍑','🥭','🍍','🥥','🍋','🍊','🍎',
+    '🥕','🍯','☕','🫖','🧈','🥚','🥛','🌰','🍇','🫘'
+  ];
+
+  function initEmojiPicker() {
+    const grid = document.getElementById('emoji-picker-grid');
+    const input = document.getElementById('menu-edit-emoji');
+    const toggle = document.getElementById('emoji-picker-toggle');
+
+    grid.innerHTML = EMOJI_OPTIONS.map(e =>
+      `<span class="emoji-option" data-emoji="${e}">${e}</span>`
+    ).join('');
+
+    toggle.addEventListener('click', () => {
+      grid.hidden = !grid.hidden;
+    });
+
+    grid.querySelectorAll('.emoji-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        input.value = opt.dataset.emoji;
+        grid.hidden = true;
+      });
+    });
+  }
+
   function openMenuEditor(item) {
     const modal = document.getElementById('menu-edit-modal');
     document.getElementById('menu-edit-title').textContent = item ? 'Edit Item' : 'Add New Item';
@@ -182,7 +210,23 @@ const Baker = (() => {
     document.getElementById('menu-edit-lead').value = item ? item.lead_days : 0;
     document.getElementById('menu-edit-ingredients').value = item ? (item.ingredients || []).join('\n') : '';
     document.getElementById('menu-edit-sort').value = item ? item.sort_order : allMenuItems.length + 1;
+    document.getElementById('emoji-picker-grid').hidden = true;
+
+    // Badge toggles
+    const badgeValue = item ? (item.badge || 'auto') : 'auto';
+    document.getElementById('menu-edit-badge').value = badgeValue;
+    document.querySelectorAll('.badge-toggle').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.badge === badgeValue);
+      btn.onclick = () => {
+        document.getElementById('menu-edit-badge').value = btn.dataset.badge;
+        document.querySelectorAll('.badge-toggle').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+      };
+    });
+
     modal.hidden = false;
+
+    initEmojiPicker();
 
     // Remove old listener, add new one
     const saveBtn = document.getElementById('menu-edit-save');
@@ -205,7 +249,8 @@ const Baker = (() => {
       return;
     }
 
-    const row = { name, emoji, description, lead_days, ingredients, sort_order };
+    const badge = document.getElementById('menu-edit-badge').value || 'auto';
+    const row = { name, emoji, description, lead_days, ingredients, sort_order, badge };
 
     if (existingId) {
       await sb.from('menu_items').update(row).eq('id', existingId);

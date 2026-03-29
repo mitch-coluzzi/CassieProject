@@ -912,3 +912,78 @@ input:focus, select:focus {
 .form-group input[type="number"] {
   width: 100px;
 }
+
+/* ── Emoji Picker ── */
+
+.emoji-picker-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.emoji-picker-wrapper input {
+  width: 80px;
+  text-align: center;
+  font-size: 1.6rem;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.emoji-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin-top: 8px;
+  padding: 12px;
+  background: var(--white);
+  border: 2px solid var(--gray);
+  border-radius: var(--radius-sm);
+  max-width: 360px;
+}
+
+.emoji-picker-grid[hidden] {
+  display: none;
+}
+
+.emoji-option {
+  font-size: 1.5rem;
+  text-align: center;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.emoji-option:hover {
+  background: rgba(255, 107, 53, 0.12);
+  transform: scale(1.2);
+}
+
+/* ── Badge Toggles ── */
+
+.badge-toggles {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge-toggle {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  border: 2px solid var(--gray);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.badge-toggle:hover {
+  border-color: var(--orange);
+}
+
+.badge-toggle.selected {
+  border-color: var(--orange);
+  background: rgba(255, 107, 53, 0.08);
+}
