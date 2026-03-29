@@ -1,0 +1,11 @@
+{
+  "name": "request-a-treat",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npx serve . -l $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.0.0"
+  }
+}
