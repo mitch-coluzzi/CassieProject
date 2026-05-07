@@ -29,7 +29,7 @@ js/calendar.js          ← Custom month calendar widget (reused in order + bake
 js/baker.js             ← Admin view (password: "swimfast12", case-insensitive)
 js/photos.js            ← Photo upload/gallery (guests) + suggestions + baker review
 js/confetti.js          ← Celebration animation on order submit
-images/                 ← Pup images (pup-password, pup-baker, pup-cake, pup-cupcake, pup-banana)
+images/                 ← Pig images (pig-password, pig-baker, pig-celebration); legacy pup-* still present
 setup.sql               ← Full schema + seed data (reference only — already run)
 migrate-v2.sql          ← menu_items + suggestions tables
 migrate-v3.sql          ← badge column on menu_items
@@ -60,7 +60,7 @@ docs/CONTEXT.md         ← This file
 - **Nunito** — body text (friendly, rounded)
 
 ### Visual Elements
-- Pup images on login, name selection, order confirmation, and already-ordered screens
+- Pig images on login (pig-password), name selection (pig-baker), order confirmation and already-ordered screens (pig-celebration)
 - Bouncing doggie emojis fixed-positioned around the site edges
 - NEW (pulsing orange) and BE THE FIRST (pink) badges on menu cards
 - Confetti animation on order submission
@@ -151,9 +151,7 @@ Menu items are stored in the `menu_items` table and loaded at boot via `loadMenu
 Menu cards sort: NEW first, BE THE FIRST second, everything else after.
 
 **Pup image mapping (config.js → getPupImage):**
-- Muffins → pup-cupcake.png
-- Cake → pup-cake.png
-- Banana/Pumpkin/Pie → pup-banana.png
+- All treats → pig-celebration.png (single celebration image for all order confirmations)
 
 ---
 
@@ -170,9 +168,9 @@ Menu cards sort: NEW first, BE THE FIRST second, everything else after.
 ## User Flow
 
 ```
-Login ("treats" + pup-password) → Pick Name (pup-baker, "Coming Up!" list of upcoming orders) → Order Form → Confetti + Pup Confirm
+Login ("treats" + pig-password) → Pick Name (pig-baker, "Coming Up!" list of upcoming orders) → Order Form → Confetti + pig-celebration Confirm
                                                               ↑
-                                                    (if has_active_order → "Already Ordered" + pup)
+                                                    (if has_active_order → "Already Ordered" + pig-celebration)
                                                               ↓
                                                     Gallery & Suggestions (accessible from all screens)
 ```

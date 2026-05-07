@@ -76,11 +76,7 @@ function dateToISO(date) {
 /* ── Pup image mapping ── */
 
 function getPupImage(treatName) {
-  const name = (treatName || '').toLowerCase();
-  if (name.includes('muffin')) return 'images/pup-cupcake.png';
-  if (name.includes('cake')) return 'images/pup-cake.png';
-  if (name.includes('banana') || name.includes('pumpkin') || name.includes('pie')) return 'images/pup-banana.png';
-  return 'images/pup-cake.png'; // default
+  return 'images/pig-celebration.png';
 }
 
 /* ── View switching ── */
