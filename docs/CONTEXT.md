@@ -198,7 +198,7 @@ Footer link → Password ("swimfast12") → Baker Dashboard
 - **Static server:** `serve` via package.json
 - **Database:** Supabase (free tier, no backend needed)
 - **Repo:** github.com/mitch-coluzzi/CassieProject
-- **Push:** `git push` from Windows PowerShell (WSL can't push)
+- **Push:** `git push` from WSL (auto-deploys to Railway from `main`)
 
 ---
 
