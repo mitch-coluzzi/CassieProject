@@ -14,6 +14,12 @@ const Names = (() => {
         </select>
         <button class="btn btn-secondary" id="name-btn">That's Me! 🙋</button>
       </div>
+      <div class="card upcoming-card" id="upcoming-card">
+        <h2>Coming Up! 🎂</h2>
+        <div id="upcoming-list" class="upcoming-list">
+          <div class="upcoming-loading">Loading…</div>
+        </div>
+      </div>
     `;
 
     // Fetch users
@@ -31,6 +37,8 @@ const Names = (() => {
       select.appendChild(opt);
     });
 
+    renderUpcoming(users);
+
     document.getElementById('name-btn').addEventListener('click', async () => {
       const userId = select.value;
       if (!userId) return;
@@ -46,6 +54,48 @@ const Names = (() => {
         showScreen('order');
       }
     });
+  }
+
+  async function renderUpcoming(users) {
+    const list = document.getElementById('upcoming-list');
+    if (!list) return;
+
+    const todayISO = dateToISO(new Date());
+    const { data: orders, error } = await sb
+      .from('orders')
+      .select('*')
+      .eq('status', 'active')
+      .gte('pickup_date', todayISO)
+      .order('pickup_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching upcoming orders:', error);
+      list.innerHTML = `<div class="upcoming-empty">Couldn't load upcoming treats 🐶</div>`;
+      return;
+    }
+
+    if (!orders || orders.length === 0) {
+      list.innerHTML = `<div class="upcoming-empty">Nothing on the list yet — be the first to add a treat! 🍪</div>`;
+      return;
+    }
+
+    const userById = new Map(users.map(u => [u.id, u.display_name]));
+
+    list.innerHTML = orders.map(o => {
+      const treat = MENU.find(m => m.name === o.treat);
+      const emoji = treat ? treat.emoji : '🍰';
+      const who = userById.get(o.user_id) || 'A friend';
+      const dateStr = formatDate(new Date(o.pickup_date + 'T00:00:00'));
+      return `
+        <div class="upcoming-row">
+          <div class="upcoming-emoji">${emoji}</div>
+          <div class="upcoming-text">
+            <div class="upcoming-treat">${o.treat}</div>
+            <div class="upcoming-meta">${who} · ${dateStr}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
   }
 
   async function showAlreadyOrdered(user) {

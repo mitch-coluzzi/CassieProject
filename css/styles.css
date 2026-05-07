@@ -213,6 +213,62 @@ input:focus, select:focus {
   margin-bottom: 20px;
 }
 
+/* Upcoming Treats card (sits directly below names-card) */
+.upcoming-card {
+  max-width: 420px;
+  margin: 24px auto 0;
+  text-align: left;
+}
+.upcoming-card h2 {
+  font-size: 1.5rem;
+  color: var(--orange);
+  text-align: center;
+  margin-bottom: 16px;
+}
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.upcoming-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  transition: transform 0.15s;
+}
+.upcoming-row:hover {
+  transform: translateX(2px);
+}
+.upcoming-emoji {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.upcoming-text {
+  flex: 1;
+  min-width: 0;
+}
+.upcoming-treat {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text);
+}
+.upcoming-meta {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+.upcoming-empty,
+.upcoming-loading {
+  text-align: center;
+  padding: 12px;
+  opacity: 0.7;
+  font-size: 0.95rem;
+}
+
 /* ============================================
    Screen 3 — Order Form
    ============================================ */

@@ -23,7 +23,7 @@ css/styles.css          ← Full design system (colors, pup images, doggies, bad
 js/config.js            ← Supabase client, loadMenu(), date helpers, getPupImage(), showScreen()
 js/app.js               ← Boot: await loadMenu(), init login, wire modals
 js/login.js             ← Password screen (secret: "treats", case-insensitive)
-js/names.js             ← User dropdown from DB, active-order check, pup on already-ordered
+js/names.js             ← User dropdown, active-order check, pup on already-ordered, "Coming Up!" upcoming-orders card
 js/order.js             ← Menu grid with badges, calendar, destination, submit, recipe modal
 js/calendar.js          ← Custom month calendar widget (reused in order + baker)
 js/baker.js             ← Admin view (password: "swimfast12", case-insensitive)
@@ -170,7 +170,7 @@ Menu cards sort: NEW first, BE THE FIRST second, everything else after.
 ## User Flow
 
 ```
-Login ("treats" + pup-password) → Pick Name (pup-baker) → Order Form → Confetti + Pup Confirm
+Login ("treats" + pup-password) → Pick Name (pup-baker, "Coming Up!" list of upcoming orders) → Order Form → Confetti + Pup Confirm
                                                               ↑
                                                     (if has_active_order → "Already Ordered" + pup)
                                                               ↓
